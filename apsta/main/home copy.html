@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- <style>
+        table{border-collapse: collapse;}
+        th,td{border: 1px solid black;}
+        tr:nth-child(even){background-color: brown;}
+    </style>
+-->
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <h1>AP信息</h1>
+
+    <table style="background-color:lightgray">
+        <tr>
+            <td align="right">
+                <label>SSID:</label>
+            </td>
+            <td align="right">
+                <label>esp32test_ap</label>
+            </td>
+        </tr>
+        <td align="right">
+            <label>登陆密码:</label>
+        </td>
+        <td align="right">
+            <label>esp32test_ap</label>
+        </td>
+        </p>
+    </table>
+    <h1>STA WIFI设置</h1>
+    <form method="post">
+        <table>
+            <tr>
+                <td align="right">
+                    <label for="sta_ssid:">
+                        STA SSID:
+                    </label>
+
+                </td>
+                <td align="right">
+                    <input type="text" id="sta_ssid" value="ssid"></input>
+                </td>
+
+            </tr>
+            <tr>
+                <td>
+                    <label for="sta_password">
+                        STA WORD:
+                    </label>
+                </td>
+                <td align="right">
+                    <input type="password" id="sta_password" value="****"></input>
+
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td align="right"><input type="submit"></input>
+                </td>
+            </tr>
+
+        </table>
+
+    </form>
+
+    <hr>
+    <h1>STA状态</h1>
+</body>
+
+</html>

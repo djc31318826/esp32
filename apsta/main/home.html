@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- <style>
+        table{border-collapse: collapse;}
+        th,td{border: 1px solid black;}
+        tr:nth-child(even){background-color: brown;}
+    </style>
+-->
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <h1>AP和STA信息</h1>
+    <!--<table style="background-color:lightgray">
+        <tr>
+            <td align="right">
+                <label>SSID:</label>
+            </td>
+            <td align="right">
+                <label>esp32test_ap</label>
+            </td>
+        </tr>
+        <td align="right">
+            <label>登陆密码:</label>
+        </td>
+        <td align="right">
+            <label>esp32test_ap</label>
+        </td>
+        </p>
+    </table>-->
+    <p><textarea id="ap_sta_info" name="ap_sta_info" rows="10" cols="100" readonly="true"></textarea></p>
+    <h1>STA WIFI设置</h1>
+    <table>
+        <tr>
+            <td align="right">
+                <label for="sta_ssid:">
+                    STA SSID:
+                </label>
+
+            </td>
+            <td align="right">
+                <input type="text" name="input1" id="sta_ssid1" value="djc001"></input>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="sta_password">
+                    STA WORD:
+                </label>
+            </td>
+            <td align="right">
+                <input type="password" id="sta_password" value="****"></input>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="right">
+                <button id="button_set" onclick="set_func()">设置</button>
+            </td>
+        </tr>
+
+    </table>
+    <button id="button_ws" onclick="ws_func()">ws</button>
+    <p id="cnt_pkt" style="color: brown;"></p>
+    <hr>
+    <label>顏色<input id="color_pan" type="color" onchange="get_pan_color()"></input></label><br><br>
+    <label for="range_r">紅色</label><input type="range" id="range_r" min="0" max="255" value="0"
+        onchange="get_range()"></input><label id="r_value">0</label><br>
+    <label for="range_g">綠色</label><input type="range" id="range_g" min="0" max="255" value="0"
+        onchange="get_range()"></input><label  id="g_value">0</label><br>
+    <label for="range_b">藍色</label><input type="range" id="range_b" min="0" max="255" value="0"
+        onchange="get_range()"></input><label  id="b_value">0</label><br>
+    <hr>
+    <h1>OTA</h1>
+    <br>
+    <input type="file" id="sel_file" onchange="set_path()">选择文件</input>
+    <input type="text" id="file_path"></input>
+    <input type="button" id="btn_upload" onclick="do_upload()" value="OTA更新"></input>
+    <h1>STA状态</h1>
+
+
+
+    <script>
+        var v;
+        const LEN_PER=1024
+        function set_path()
+        {
+            var dpath = document.getElementById("sel_file").files[0].name;
+            document.getElementById("file_path").value=dpath;
+        }
+        function do_upload()
+        {
+            var filepath=document.getElementById("sel_file").files;
+            console.log(filepath[0]);
+            console.log(filepath[0].size);
+            var reader=new FileReader()
+            reader.readAsArrayBuffer(filepath[0]);
+            //console.log();
+            reader.onload=function read_done()
+            {
+                //console.log(reader.result);
+                //开始发送数据   
+                //console.log(reader.result);
+                v=new DataView(reader.result);
+                
+                //for(i=0;i<100;i++)
+                //    console.log(v.getInt8(i))
+                socket1 = new WebSocket("ws://a.djc001.top:8000/ws1");
+                //socket1.binaryType="arraybuffer";
+                socket1.onopen=s_open
+                socket1.onmessage=onmessage1;
+
+            }
+        }
+
+        var send_ptr=0;
+        function s_open()
+        {
+            console.log("s_open");
+            send_ptr=0;
+            let buf = new ArrayBuffer(LEN_PER+2);
+            //let buf1 = new ArrayBuffer(1024);
+            let header=new DataView(buf);
+            //let d_buf= new DataView(buf1);
+
+            header.setUint8(0,0);
+            header.setUint8(1,0);
+            
+            console.log(v.byteLength);
+            for(i=0;i<2;i++)
+                console.log(header.getUint8(i).toString(16));
+            
+            for(i=0;i<LEN_PER;i++)
+            {
+                header.setUint8(i+2,v.getUint8(send_ptr+i));
+            }    
+            
+            socket1.send(header.buffer);
+            send_ptr=send_ptr+LEN_PER;
+            /*wait_flag=1;
+
+            while(wait_flag==1);
+
+            let buf1=new ArrayBuffer(1024);
+            let data_b=new DataView(buf1);
+            for(i=0;i<v.byteLength;i++)
+            {
+                data_b.setUint8(i%1024,v.getUint8(i));
+                if((i+1)%1024==0||(i==v.byteLength-1))
+                {
+                    socket1.send(data_b);
+                    wait_flag=1;
+                    console.log(i);
+                }
+
+                while(wait_flag==1);
+            }
+            */
+            //socket1.close();
+        }
+        
+        function onmessage1(event) {
+            console.log("on message");
+            //console.log(event.data);
+            if(send_ptr>=v.byteLength)
+            {
+                socket1.close()
+                console.log("done");
+                return;    
+            }
+            let buf=new ArrayBuffer(LEN_PER+2);
+            //let buf1=new ArrayBuffer(1024);
+            let header=new DataView(buf);
+            //let data_b=new DataView(buf1);
+            if(send_ptr+LEN_PER>=v.byteLength)
+            {
+                header.setUint8(0,0);
+                header.setUint8(1,255);
+            }
+            else
+            {
+                header.setUint8(0,0);
+                header.setUint8(1,1);
+            }
+            //for(i=send_ptr;i<v.byteLength;i++)
+            for(i=0;i<LEN_PER;i++)
+            {
+                if(send_ptr+i<v.byteLength) 
+                header.setUint8(i+2,v.getUint8(send_ptr+i));
+                //if((i+1)%1024==0)
+                //{
+                //    socket1.send(data_b.buffer);
+                //    console.log(data_b);
+                //}
+                //send_ptr=send_ptr+1024;
+            }
+            socket1.send(header.buffer);
+            send_ptr=send_ptr+LEN_PER;
+            console.log(event.data);
+        }
+
+        function set_func() {
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function () {
+                if (req.readyState == 4) {
+                    if (req.status == 200) {
+                        //alert("200");
+                    }
+                    else if (req.status == 0) {
+                        //alert("0");
+                        location.reload();
+                    }
+                    else {
+                        alert(req.readyState + " " + req.status + " Error!\n" + req.responseText);
+                        location.reload();
+                    }
+                }
+            };
+            req.open("POST", "/username");
+            req.send(document.getElementById("sta_ssid1").value + " " + document.getElementById("sta_password").value);
+        }
+        var i = 0;
+        var cnt = 0;
+        function getData() {
+            //document.getElementById("ap_sta_info").innerHTML = i++;
+            //console.log("triger\n");
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function () {
+                if (req.readyState == 4) {
+                    if (req.status == 200) {
+                        //alert("200");
+                        document.getElementById("ap_sta_info").innerHTML = req.responseText;
+                    }
+                    else if (req.status == 0) {
+                        //alert("0");
+                        //location.reload();
+                    }
+                    else {
+                        //alert(req.readyState + " " + req.status + " Error!\n" + req.responseText);
+                        console.log(req.readyState + " " + req.status + " Error!\n" + req.responseText)
+                        location.reload();
+                    }
+                }
+            };
+            req.open("POST", "/ap_sta_info");
+            req.send("query info");
+        }
+        //setInterval(function () { getData(); }, 10000);
+        window.addEventListener("load", init);
+        window.addEventListener("beforeunload", onClose)
+        function init() {
+            socket = new WebSocket("ws://a.djc001.top:8000/ws");
+            socket.onopen = onOpen;
+            socket.onmessage = onMessage;
+            document.getElementById("color_pan").value = "#ff0000"
+            //document.getElementById("button_set").disabled=true;
+            get_pan_color();
+            get_range();
+            //socket.onclose=onClose1;
+            //getData();
+        }
+        var socket;
+        function ws_func() {
+            if (socket.readyState == WebSocket.OPEN)
+                socket.send("1234");
+            //socket.close();
+        }
+        function onOpen(event) {
+            console.log("here");
+            socket.send("1234");
+        }
+
+        //window.onbeforeunload = function () {
+        //websocket.close();
+        //alert("333");
+        // }
+
+        function onClose() {
+            //writeToScreen("closed");
+            //console.log("closed");
+            //if(socket.readyState==WebSocket.OPEN)
+            //    socket.close();
+        }
+        function onClose1() {
+            //writeToScreen("closed1");
+            //alert("closed1");
+            //socket.close();
+        }
+        function get_range() {
+            var r = parseInt(document.getElementById("range_r").value);
+            var g = parseInt(document.getElementById("range_g").value);
+            var b = parseInt(document.getElementById("range_b").value);
+            document.getElementById("r_value").innerHTML=r;
+            document.getElementById("g_value").innerHTML=g;
+            document.getElementById("b_value").innerHTML=b;
+                
+            console.log("get_range" + " " + r + " " + g + " " + b + " " + ConvertRGBtoHex(r, g, b));
+            document.getElementById("color_pan").value = ConvertRGBtoHex(r, g, b);
+            //
+            if (socket.readyState == WebSocket.OPEN)
+            {
+                socket.send(r+" "+g+" "+b);
+            }
+            //ColorToHex(100);
+        }
+        function ColorToHex(color) {
+            var hexadecimal = color.toString(16);
+            console.log("color=" + color + " hex=" + hexadecimal);
+            return hexadecimal.length == 1 ? "0" + hexadecimal : hexadecimal;
+        }
+
+        function ConvertRGBtoHex(red, green, blue) {
+            return "#" + ColorToHex(red) + ColorToHex(green) + ColorToHex(blue);
+        }
+        function HexToRGB(cIn) {
+            var r;
+            var g;
+            var b;
+            console.log("cIn.length="+cIn.length);
+            if (cIn.length == 7) {
+                r = cIn[1] + cIn[2];
+                g = cIn[3] + cIn[4];
+                b = cIn[5] + cIn[6];
+
+                return {r: parseInt(r, 16),g: parseInt(g, 16),b: parseInt(b, 16)};
+            }
+            else {
+                return {
+                    r: parseInt(0, 16),
+                    g: parseInt(0, 16),
+                    b: parseInt(0, 16)
+                };
+            }
+
+        }
+        function get_pan_color() {
+            //console.log("get_range"+" "+document.getElementById("range_r").value+" "+document.getElementById("range_g").value+" "+document.getElementById("range_b").value);
+            console.log("get_pan_color");
+            console.log(document.getElementById("color_pan").value);
+            var t = HexToRGB(document.getElementById("color_pan").value)
+            document.getElementById("range_r").value = t.r;
+            document.getElementById("range_g").value = t.g;
+            document.getElementById("range_b").value = t.b;
+            get_range();
+        }
+        function onMessage(event) {
+            //console.log("on message");
+            //console.log(event.data);
+            cnt++;
+            //document.getElementById("cnt_pkt").innerHTML="收到的包数为："+cnt;
+            document.getElementById("cnt_pkt").innerHTML = event.data;
+           
+            var t=event.data;
+            console.log(t);
+            var tt=t.split(" ");
+            console.log(tt.length+" "+tt);
+            if(tt.length==3)
+            {
+                document.getElementById("range_r").value = tt[0];
+                document.getElementById("range_g").value = tt[1];
+                document.getElementById("range_b").value = tt[2];
+                document.getElementById("color_pan").value = ConvertRGBtoHex(parseInt(tt[0]), parseInt(tt[1]), parseInt(tt[2]));
+                document.getElementById("r_value").innerHTML=tt[0];
+                document.getElementById("g_value").innerHTML=tt[1];
+                document.getElementById("b_value").innerHTML=tt[2];
+                //get_range();
+            }
+        }
+    </script>
+</body>
+
+</html>

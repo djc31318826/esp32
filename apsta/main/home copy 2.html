@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- <style>
+        table{border-collapse: collapse;}
+        th,td{border: 1px solid black;}
+        tr:nth-child(even){background-color: brown;}
+    </style>
+-->
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <h1>AP信息</h1>
+
+    <table style="background-color:lightgray">
+        <tr>
+            <td align="right">
+                <label>SSID:</label>
+            </td>
+            <td align="right">
+                <label>esp32test_ap</label>
+            </td>
+        </tr>
+        <td align="right">
+            <label>登陆密码:</label>
+        </td>
+        <td align="right">
+            <label>esp32test_ap</label>
+        </td>
+        </p>
+    </table>
+    <h1>STA WIFI设置</h1>
+    <table>
+        <tr>
+            <td align="right">
+                <label for="sta_ssid:">
+                    STA SSID:
+                </label>
+
+            </td>
+            <td align="right">
+                <input type="text" name="input1" id="sta_ssid1" value="ssid1"></input>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="sta_password">
+                    STA WORD:
+                </label>
+            </td>
+            <td align="right">
+                <input type="password" id="sta_password" value="****"></input>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="right">
+                <button id="button_set" onclick="set_func()">设置</button>
+            </td>
+        </tr>
+
+    </table>
+    <hr>
+    <h1>STA状态</h1>
+    <script>
+        function set_func() {
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function () {
+                if (req.readyState == 4) {
+                    if (req.status == 200) {
+                        alert("200");
+                    }
+                    else if (req.status == 0) {
+                        alert("0");
+                        location.reload();
+                    }
+                    else {
+                        alert(req.readyState + " " + req.status + " Error!\n" + req.responseText);
+                        location.reload();
+                    }
+                }
+            };
+            req.open("POST", "/username");
+            req.send(document.getElementById("sta_ssid1").value +" "+document.getElementById("sta_password").value);
+        }
+
+        
+    </script>
+</body>
+
+</html>
