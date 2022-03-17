@@ -1,6 +1,0 @@
-source "F:/esp-idf/components/app_update/Kconfig.projbuild"
-source "F:/esp-idf/components/bootloader/Kconfig.projbuild"
-source "F:/esp-idf/components/esp_rom/Kconfig.projbuild"
-source "F:/esp-idf/components/esptool_py/Kconfig.projbuild"
-source "F:/esp-idf/components/partition_table/Kconfig.projbuild"
-source "F:/learn/esp32/esp_prj/git/esp32/apsta/main/Kconfig.projbuild"
