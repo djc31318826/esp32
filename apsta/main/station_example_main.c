@@ -1451,10 +1451,10 @@ void app_main(void)
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
 #ifdef CONFIG_EXAMPLE_IPV4
-    xTaskCreate(tcp_server_task, "tcp_server", 4096, (void *)AF_INET, 5, NULL);
+    xTaskCreate(tcp_server_task, "tcp_server", 70000, (void *)AF_INET, 5, NULL);
 #endif
 #ifdef CONFIG_EXAMPLE_IPV6
-    xTaskCreate(tcp_server_task, "tcp_server", 4096, (void *)AF_INET6, 5, NULL);
+    xTaskCreate(tcp_server_task, "tcp_server", 40960, (void *)AF_INET6, 5, NULL);
 #endif
     start_server();
     sys_delay_ms(10000);

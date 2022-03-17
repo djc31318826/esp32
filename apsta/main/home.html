@@ -75,24 +75,27 @@
     <hr>
     <h1>OTA</h1>
     <br>
-    <input type="file" id="sel_file" onchange="set_path()">选择文件</input>
-    <input type="text" id="file_path"></input>
+    <input type="file" id="sel_file" onchange="set_path()"></input>
+    <!--<input type="text" id="file_path"></input>-->
+    <br>
+    <br>
     <input type="button" id="btn_upload" onclick="do_upload()" value="OTA更新"></input>
+    <input type="range" id="progess_upload" min="0" max="100" value="0"></input><label id="progess_upload_label">0%</label>
     <h1>STA状态</h1>
-
-
-
     <script>
         var v;
-        const LEN_PER=1024
+        const LEN_PER=32*1024
         function set_path()
         {
             var dpath = document.getElementById("sel_file").files[0].name;
-            document.getElementById("file_path").value=dpath;
+            //document.getElementById("file_path").value=dpath;
         }
         function do_upload()
         {
             var filepath=document.getElementById("sel_file").files;
+            var input_text=prompt("输入密码","*****");
+            if(input_text!="admin123")
+                return;
             console.log(filepath[0]);
             console.log(filepath[0].size);
             var reader=new FileReader()
@@ -139,6 +142,7 @@
             
             socket1.send(header.buffer);
             send_ptr=send_ptr+LEN_PER;
+            document.getElementById("progess_upload").value=0;
             /*wait_flag=1;
 
             while(wait_flag==1);
@@ -196,8 +200,12 @@
                 //}
                 //send_ptr=send_ptr+1024;
             }
+            
+            console.log(Math.round(send_ptr/v.byteLength*100));
             socket1.send(header.buffer);
             send_ptr=send_ptr+LEN_PER;
+            document.getElementById("progess_upload").value=Math.round(send_ptr/v.byteLength*100)>100?100:Math.round(send_ptr/v.byteLength*100);
+            document.getElementById("progess_upload_label").innerHTML=Math.round(send_ptr/v.byteLength*100)>100?100:Math.round(send_ptr/v.byteLength*100)+"%"
             console.log(event.data);
         }
 
